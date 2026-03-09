@@ -19,9 +19,7 @@ public class RouterHandler implements HttpHandler {
 
         if (path.startsWith("/trivia")) {
             try {
-                triviaController.dificultadPreguntasFacil(exchange);
-                triviaController.dificultadPreguntasMedia(exchange);
-                triviaController.dificultadPreguntasDificil(exchange);
+                triviaController.handle(exchange);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
