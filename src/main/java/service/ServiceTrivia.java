@@ -2,29 +2,45 @@ package service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import httpRequest.PeticionHttp;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class ServiceTrivia {
-    public void formato() {
-        JsonArray results = new JsonArray();
 
-    }
-    private final HttpClient client = HttpClient.newHttpClient();
+    public JsonArray formato( HttpResponse<String>  response) throws IOException, InterruptedException {
+        Random rand = new Random();
+        Gson gson = new Gson();
+        JsonObject jsonRaiz = gson.fromJson(response.body(), JsonObject.class);
+        JsonArray results = jsonRaiz.getAsJsonArray("results");
 
-    public HttpResponse<String> peticion(String url) throws IOException, InterruptedException {
-        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .GET()
-                .build();
+        JsonArray data = new JsonArray();
+        for (JsonElement element : results) {
+            JsonObject obj = element.getAsJsonObject();
+            JsonObject dataObj = new JsonObject();
+            dataObj.addProperty("question", obj.get("question").getAsString());
+            JsonArray respuestasIncorrectas = obj.getAsJsonArray("incorrect_answers");
+            ArrayList<String> respuestasOrdenRandom = new ArrayList<>();
+            for (JsonElement respuesta : respuestasIncorrectas) {
+                respuestasOrdenRandom.add(respuesta.getAsString());
+            }
+            String respuestasCorrecta = obj.get("correct_answer").getAsString();
+            int posicionAleatoria = rand.nextInt(respuestasOrdenRandom.size() + 1);
+            respuestasOrdenRandom.add(posicionAleatoria, respuestasCorrecta);
+            JsonArray jsonArray = new JsonArray();
+            for (String respuesta : respuestasOrdenRandom) {
+                jsonArray.add(respuesta);
+            }
+            dataObj.addProperty("correct_answer", respuestasCorrecta);
+            dataObj.add("answers", jsonArray);
+            data.add(dataObj);
 
-        // Envío de la petición
-        HttpResponse<String> response =
-                client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
+        }
+        return data;
     }
 }
