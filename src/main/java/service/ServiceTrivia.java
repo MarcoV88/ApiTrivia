@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import httpRequest.PeticionHttp;
 
 import java.io.IOException;
 import java.net.http.HttpResponse;
@@ -18,29 +17,30 @@ public class ServiceTrivia {
         Gson gson = new Gson();
         JsonObject jsonRaiz = gson.fromJson(response.body(), JsonObject.class);
         JsonArray results = jsonRaiz.getAsJsonArray("results");
-
         JsonArray data = new JsonArray();
         for (JsonElement element : results) {
             JsonObject obj = element.getAsJsonObject();
             JsonObject dataObj = new JsonObject();
-            dataObj.addProperty("question", obj.get("question").getAsString());
+            dataObj.addProperty("Question", obj.get("question").getAsString());
             JsonArray respuestasIncorrectas = obj.getAsJsonArray("incorrect_answers");
             ArrayList<String> respuestasOrdenRandom = new ArrayList<>();
             for (JsonElement respuesta : respuestasIncorrectas) {
                 respuestasOrdenRandom.add(respuesta.getAsString());
             }
+
             String respuestasCorrecta = obj.get("correct_answer").getAsString();
             int posicionAleatoria = rand.nextInt(respuestasOrdenRandom.size() + 1);
             respuestasOrdenRandom.add(posicionAleatoria, respuestasCorrecta);
-            JsonArray jsonArray = new JsonArray();
+            JsonArray respuestas = new JsonArray();
             for (String respuesta : respuestasOrdenRandom) {
-                jsonArray.add(respuesta);
+                respuestas.add(respuesta);
             }
-            dataObj.addProperty("correct_answer", respuestasCorrecta);
-            dataObj.add("answers", jsonArray);
-            data.add(dataObj);
 
+            dataObj.addProperty("Correct_answer", respuestasCorrecta);
+            dataObj.add("Answers", respuestas);
+            data.add(dataObj);
         }
+
         return data;
     }
 }

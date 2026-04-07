@@ -1,47 +1,90 @@
 package controllers;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.sun.net.httpserver.HttpExchange;
 import httpRequest.PeticionHttp;
 import service.ServiceTrivia;
 
 import java.io.*;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Random;
 
 public class TriviaController {
 
     public void handle(HttpExchange exchange) throws IOException, InterruptedException{
         String path = exchange.getRequestURI().getPath();
-
+        String method = exchange.getRequestMethod();
         ServiceTrivia serviceTrivia = new ServiceTrivia();
-            if (path.startsWith("/trivia/dificultad/easy")) {
-                PeticionHttp peticionHttp = new PeticionHttp();
-                HttpResponse<String> response = peticionHttp.peticion("https://opentdb.com/api.php?amount=10&difficulty=easy");
-                JsonArray resultado = serviceTrivia.formato(response);
-                sendResponse(exchange, 200, resultado.toString());
-                return;
+
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+        if (method.equalsIgnoreCase("OPTIONS")) {
+            exchange.sendResponseHeaders(204, -1);
+            return;
+        }
+
+        try {
+
+            //  GET
+            if (method.equalsIgnoreCase("GET")) {
+
+                if (path.startsWith("/trivia/dificultad/easy")) {
+                    PeticionHttp peticionHttp = new PeticionHttp();
+                    HttpResponse<String> response = peticionHttp.peticion("https://opentdb.com/api.php?amount=10&difficulty=easy");
+                    JsonArray resultado = serviceTrivia.formato(response);
+                    sendResponse(exchange, 200, resultado.toString());
+                    return;
+                }
+
+                if (path.startsWith("/trivia/dificultad/medium")) {
+                    PeticionHttp peticionHttp = new PeticionHttp();
+                    HttpResponse<String> response = peticionHttp.peticion("https://opentdb.com/api.php?amount=10&difficulty=medium");
+                    JsonArray resultado = serviceTrivia.formato(response);
+                    sendResponse(exchange, 200, resultado.toString());
+                    return;
+                }
+
+                if (path.startsWith("/trivia/dificultad/hard")) {
+                    PeticionHttp peticionHttp = new PeticionHttp();
+                    HttpResponse<String> response = peticionHttp.peticion("https://opentdb.com/api.php?amount=10&difficulty=hard");
+                    JsonArray resultado = serviceTrivia.formato(response);
+                    sendResponse(exchange, 200, resultado.toString());
+                    return;
+                }
             }
 
-            if (path.startsWith("/trivia/dificultad/medium")) {
-                PeticionHttp peticionHttp = new PeticionHttp();
-                HttpResponse<String> response = peticionHttp.peticion("https://opentdb.com/api.php?amount=10&difficulty=medium");
-                JsonArray resultado = serviceTrivia.formato(response);
-                sendResponse(exchange, 200, resultado.toString());
-                return;
+            //  POST (NUEVO)
+            else if (method.equalsIgnoreCase("POST")) {
+
+                if (path.equals("/trivia/verificar")) {
+                    String body = new String(
+                            exchange.getRequestBody().readAllBytes(),
+                            StandardCharsets.UTF_8
+                    );
+                    System.out.println("Body recibido: " + body);
+                    sendResponse(exchange, 200, body);
+                }
+                else {
+                    sendResponse(exchange, 404, "Endpoint POST no válido");
+                }
             }
 
-           if (path.startsWith("/trivia/dificultad/hard")) {
-               PeticionHttp peticionHttp = new PeticionHttp();
-               HttpResponse<String> response = peticionHttp.peticion("https://opentdb.com/api.php?amount=10&difficulty=hard");
-               JsonArray resultado = serviceTrivia.formato(response);
-               sendResponse(exchange, 200, resultado.toString());
-               return;
+            else {
+                sendResponse(exchange, 405, "Método no permitido");
             }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sendResponse(exchange, 500, "Error en DogsController");
+        }
+
+
+
 
         sendResponse(exchange, 404, "No encontrada la ruta");
     }

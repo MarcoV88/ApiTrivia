@@ -15,7 +15,6 @@ public class Main {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         // cada vez que arranca y se pone (http://localhost:8080)
         server.createContext("/", new RouterHandler());
-
         server.setExecutor(null);
         server.start();
         System.out.println("Servidor iniciado en http://localhost:8080");
